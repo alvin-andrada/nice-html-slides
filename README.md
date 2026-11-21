@@ -4,7 +4,7 @@ Lively, speaker-led HTML presentations: one self-contained HTML file per deck, w
 
 Built as an agent skill on top of [frontend-slides](https://github.com/zarazhangrui/frontend-slides), which provides the design system (presets, bold templates, the fixed 16:9 stage). This layer adds the accents, motion, checks and exports.
 
-**Demo:** open [`docs/index.html`](docs/index.html) (or the GitHub Pages site) and use the arrow keys.
+**Live demo:** https://alvin-andrada.github.io/nice-html-slides/ (use the arrow keys or swipe).
 
 ## Features
 
@@ -19,7 +19,10 @@ Built as an agent skill on top of [frontend-slides](https://github.com/zarazhang
 ## Install
 
 1. Install the `frontend-slides` skill.
-2. Put this folder in your skills directory (for example `~/.claude/skills/nice-html-slides` for Claude Code), or clone it there.
+2. Clone this repo into your skills directory, for example:
+   ```
+   git clone https://github.com/alvin-andrada/nice-html-slides.git ~/.claude/skills/nice-html-slides
+   ```
 3. In this folder:
    ```
    npm install

@@ -76,4 +76,4 @@ python scripts/export.py path/to/dist/deck.html --pdf deck.pdf --pptx deck.pptx 
 PDF: one image per slide at final state. PPTX (hybrid): native text boxes, native charts and tables, decor and 3D as an image layer. Use `--charts image` to keep charts as pictures. After exporting, render the PPTX once and check it.
 
 ## Example
-`examples/palmer-penguins/deck.html` is a complete deck in the Daisy Days style using mascots, props, all four chart types, auto builds and transitions.
+`examples/palmer-penguins/deck.html` is a reference for syntax only: how markers, anchors and data attributes are written. Open it only when unsure how an attribute is used. Never copy its style, palette, layout, copy, ornaments, mascot or props into a new deck; the style comes from the user's frontend-slides choice and the accents from the user's answer and the deck's own content. A deck that is not about penguins never gets penguins.
