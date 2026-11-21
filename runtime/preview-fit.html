@@ -1,0 +1,11 @@
+<script>
+const stage = document.querySelector('.deck-stage');
+function fit() {
+  const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+  stage.style.transform = `translate(${(innerWidth - 1920 * k) / 2}px, ${(innerHeight - 1080 * k) / 2}px) scale(${k})`;
+  if (window.s3d) s3d.setScale(k);
+}
+addEventListener('resize', fit);
+fit();
+document.fonts.ready.then(() => requestAnimationFrame(() => document.body.classList.add('ready')));
+</script>

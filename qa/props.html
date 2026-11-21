@@ -1,0 +1,15 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Prop turntable</title><!--@BASE@-->
+<style>:root{--stage-bg:#f5f0e6;--s3d-outline:#2D2D2D;--s3d-outline-width:0.006} .deck-stage{background:#f5f0e6} .prop{position:absolute}</style></head>
+<body><div class="deck-viewport"><main class="deck-stage"><section class="slide active">
+<div class="prop" data-prop="ruler" style="left:110px;top:130px;width:260px;height:260px"></div>
+<div class="prop" data-prop="broom" style="left:590px;top:130px;width:260px;height:260px"></div>
+<div class="prop" data-prop="pie" style="left:1070px;top:130px;width:260px;height:260px"></div>
+<div class="prop" data-prop="forest" style="left:1550px;top:130px;width:260px;height:260px"></div>
+<div class="prop" data-prop="trophy" style="left:110px;top:670px;width:260px;height:260px"></div>
+<div class="prop" data-prop="magnifier" style="left:590px;top:670px;width:260px;height:260px"></div>
+<div class="prop" data-prop="flag" style="left:1070px;top:670px;width:260px;height:260px"></div>
+<div class="prop" data-prop="iceberg" style="left:1550px;top:670px;width:260px;height:260px"></div>
+</section></main></div>
+<!--@STAGE3D@-->
+<script>window.s3d = Stage3D.init(document.querySelector('.deck-stage')); s3d.show(document.querySelector('.slide'), true); s3d.propYaw = 0;</script>
+<!--@FIT@--></body></html>

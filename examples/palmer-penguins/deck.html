@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Palmer Penguins: Species Classification</title>
+<style>
+/*@FONTS:Fredoka,Quicksand@*/
+
+/* === DAISY DAYS TOKENS === */
+:root {
+  --cream: #F5F0E6;
+  --turquoise: #7ECDC0;
+  --soft-pink: #F7C8D4;
+  --butter: #FDE68A;
+  --mint: #A8E6CF;
+  --lavender: #D4A5E8;
+  --peach: #FFCBA4;
+  --sky: #A8D8F0;
+  --coral: #F8635F;
+  --text-dark: #2D2D2D;
+  --text-muted: #6B6B6B;
+  --white: #FFFFFF;
+  --border: 3px solid var(--text-dark);
+  --shadow: 6px 6px 0 var(--text-dark);
+  --shadow-sm: 4px 4px 0 var(--text-dark);
+  --font-display: 'Fredoka', cursive;
+  --accent: var(--coral);
+  --font-body: 'Quicksand', sans-serif;
+  --stage-bg: #2D2D2D;
+  --slide-bg: var(--cream);
+  /* the 3D layer reads these */
+  --s3d-adelie: #FFCBA4;
+  --s3d-chinstrap: #D4A5E8;
+  --s3d-gentoo: #A8D8F0;
+  --s3d-body: #3E3A4C;
+  --s3d-outline: #2D2D2D;
+  --s3d-outline-width: 0.006;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* === VIEWPORT BASE (frontend-slides) === */
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--stage-bg, #000); }
+.deck-viewport { position: fixed; inset: 0; overflow: hidden; background: var(--stage-bg, #000); }
+.deck-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; background: var(--slide-bg, #fff); }
+.slide { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; display: block; visibility: hidden; opacity: 0; pointer-events: none; background: var(--slide-bg, #fff); }
+.slide.active, .slide.visible { visibility: visible; opacity: 1; pointer-events: auto; z-index: 1; }
+img, video, canvas, svg { max-width: 100%; max-height: 100%; }
+@media print {
+  html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+  .deck-viewport { position: static; overflow: visible; background: #fff; }
+  .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
+  .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; width: 1920px; height: 1080px; break-after: page; page-break-after: always; }
+  .slide:last-child { break-after: auto; page-break-after: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+}
+
+/* === SURFACES === */
+.slide { font-family: var(--font-body); color: var(--text-dark); transition: opacity .5s ease, visibility .5s; }
+.s-cream { background: var(--cream); }
+.s-peach { background: var(--peach); }
+.s-sky { background: var(--sky); }
+.s-mint { background: var(--mint); }
+.s-turquoise { background: var(--turquoise); }
+
+/* === TYPOGRAPHY === */
+.abs { position: absolute; z-index: 2; }
+.badge { display: inline-block; padding: 12px 28px; border-radius: 50px; border: var(--border); background: var(--butter); box-shadow: var(--shadow-sm); font: 600 26px/1 var(--font-display); letter-spacing: .02em; }
+.h { font: 600 104px/1.1 var(--font-display); letter-spacing: .02em; }
+.h.on-bold { color: var(--white); text-shadow: 3px 3px 0 var(--text-dark); }
+.h.on-soft { color: var(--white); text-shadow: 3px 3px 0 var(--text-dark); }
+.display { font: 600 168px/1 var(--font-display); letter-spacing: .02em; color: var(--white); text-shadow: 5px 5px 0 var(--text-dark); }
+.title { font: 600 50px/1.15 var(--font-display); letter-spacing: .02em; }
+.body { font: 600 44px/1.35 var(--font-body); }
+.meta { font: 600 24px/1.4 var(--font-body); color: var(--text-muted); }
+.big { font: 600 130px/1 var(--font-display); letter-spacing: .02em; }
+
+/* === COMPONENTS === */
+.card { background: var(--white); border: var(--border); border-radius: 28px; box-shadow: var(--shadow); }
+.surface-card { border: var(--border); border-radius: 28px; box-shadow: var(--shadow); }
+.pill { display: inline-flex; align-items: center; gap: 12px; padding: 12px 26px; border-radius: 50px; border: var(--border); background: var(--white); font: 600 34px/1 var(--font-display); }
+.swatch { width: 28px; height: 28px; border: 2px solid var(--text-dark); border-radius: 5px; display: inline-block; }
+.stat { display: flex; align-items: baseline; gap: 22px; }
+.stat b { font: 600 120px/1 var(--font-display); }
+.stat span { font: 600 46px/1 var(--font-body); color: var(--text-muted); }
+.dots li { list-style: none; position: relative; padding-left: 60px; font: 600 44px/1.35 var(--font-body); margin-bottom: 30px; }
+.dots li::before { content: ''; position: absolute; left: 0; top: 14px; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--text-dark); background: var(--dot, var(--butter)); }
+.num li { list-style: none; position: relative; padding-left: 100px; font: 600 46px/1.3 var(--font-body); margin-bottom: 44px; min-height: 64px; }
+.num li span { position: absolute; left: 0; top: -4px; width: 64px; height: 64px; border-radius: 50%; border: var(--border); box-shadow: var(--shadow-sm); display: grid; place-items: center; font: 600 32px/1 var(--font-display); color: var(--white); text-shadow: 2px 2px 0 var(--text-dark); }
+.step { width: 340px; height: 380px; padding: 34px 32px; }
+.step .circle { width: 90px; height: 90px; border-radius: 50%; border: var(--border); box-shadow: var(--shadow-sm); display: grid; place-items: center; font: 600 44px/1 var(--font-display); color: var(--white); text-shadow: 3px 3px 0 var(--text-dark); margin-bottom: 30px; }
+.step h3 { font: 600 52px/1.1 var(--font-display); margin-bottom: 14px; }
+.step p { font: 600 36px/1.3 var(--font-body); color: var(--text-muted); }
+.arrow { font: 600 48px/1 var(--font-display); }
+.row { display: flex; }
+.row > div { flex: 1; text-align: center; font: 600 36px/1.2 var(--font-display); }
+.row > div small { display: block; font: 600 24px/1.3 var(--font-body); color: var(--text-muted); }
+.platform { border-radius: 60px; background: var(--soft-pink); border: var(--border); box-shadow: var(--shadow); }
+.counter { left: 50%; top: 994px; transform: translateX(-50%); padding: 10px 28px; border-radius: 50px; border: var(--border); background: var(--butter); color: var(--text-dark); box-shadow: var(--shadow-sm); font: 600 30px/1 var(--font-display); z-index: 5; }
+.navdots { right: 40px; top: 50%; transform: translateY(-50%); display: grid; gap: 14px; z-index: 5; }
+.navdots i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--text-dark); background: var(--text-dark); transition: transform .3s, background .3s; }
+.navdots i.on { background: var(--butter); transform: scale(1.4); }
+
+
+/* === LAYOUT: spacing comes from containers, not coordinates === */
+.panel { left: 200px; top: 290px; width: 1520px; height: 660px; padding: 64px 72px; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+.stack { display: flex; flex-direction: column; justify-content: center; gap: 40px; }
+.col { display: flex; flex-direction: column; justify-content: center; gap: 36px; min-height: 0; }
+.col.riders { justify-content: flex-end; padding-top: 170px; gap: 20px; }
+.mx { display: grid; grid-template-columns: 150px 420px; grid-template-rows: auto 420px; gap: 12px 18px; align-self: center; }
+.mxrows, .hlabels { display: grid; align-items: center; text-align: right; font: 600 30px/1.1 var(--font-display); }
+.mxrows { grid-template-rows: repeat(3, 1fr); }
+.hlabels { grid-template-rows: repeat(4, 1fr); font-size: 34px; }
+.mx .row > div { font-size: 28px; }
+.axis { font: 600 32px/1.2 var(--font-display); }
+
+/* === 2D CHARTS IN THIS STYLE === */
+.chart2d rect { stroke: var(--text-dark); stroke-width: 3px; filter: drop-shadow(4px 4px 0 var(--text-dark)); }
+.chart2d .base { stroke: var(--text-dark); stroke-width: 3; }
+.chart2d .v { font: 600 40px var(--font-display); fill: var(--text-dark); }
+.chart2d .v.big { font-size: 52px; }
+.chart2d .v.zero { fill: var(--text-muted); }
+.chart2d circle { stroke: var(--text-dark); stroke-width: 1.5; }
+.chart2d .axis line { stroke: var(--text-dark); stroke-width: 3; }
+.chart2d .tick { font: 700 28px var(--font-body); fill: var(--text-muted); }
+.chart2d .title { font: 700 30px var(--font-body); fill: var(--text-dark); text-anchor: middle; }
+
+/* === ORNAMENTS === */
+.orn { position: absolute; z-index: 1; pointer-events: none; overflow: visible; max-width: none; max-height: none; }
+.orn .spin { transform-box: fill-box; transform-origin: center; animation: spin 40s linear infinite; }
+.orn .tw { transform-box: fill-box; transform-origin: center; animation: tw 4s ease-in-out infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes tw { 50% { transform: scale(.88) rotate(10deg); } }
+
+/*@NICE_CSS@*/
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+  <!-- 1 Title -->
+  <section class="slide s-cream">
+    <svg class="orn" data-o="daisy" style="left:1660px;top:-90px;width:330px;height:330px"></svg>
+    <svg class="orn" data-o="daisy" style="left:-70px;top:880px;width:240px;height:240px"></svg>
+    <svg class="orn" data-o="cloud" style="left:1190px;top:120px;width:280px;height:140px"></svg>
+    <svg class="orn" data-o="star" data-fill="#F7C8D4" style="left:1120px;top:430px;width:80px;height:80px"></svg>
+    <svg class="orn" data-o="star" data-fill="#A8E6CF" style="left:1730px;top:470px;width:64px;height:64px"></svg>
+    <svg class="orn" data-o="star" data-fill="#D4A5E8" style="left:1000px;top:56px;width:58px;height:58px"></svg>
+    <div class="abs surface-card stack reveal" style="left:130px;top:150px;width:960px;height:770px;background:var(--turquoise);padding:80px 72px">
+      <h1 class="display">Palmer<br>Penguins</h1>
+      <p class="body">Telling three species apart from four body measurements</p>
+      <div style="display:flex;gap:16px">
+        <span class="pill" style="background:var(--peach)">Adélie</span>
+        <span class="pill" style="background:var(--lavender)">Chinstrap</span>
+        <span class="pill" style="background:var(--sky)">Gentoo</span>
+      </div>
+    </div>
+    <div class="abs platform" style="left:1150px;top:820px;width:660px;height:110px"></div>
+    <div class="p3d" data-penguin="adelie" data-act="wave" style="left:1290px;top:600px;height:265px"></div>
+    <div class="p3d" data-penguin="chinstrap" data-z="-3.2" style="left:1480px;top:620px;height:245px"></div>
+    <div class="p3d" data-penguin="gentoo" data-act="jump" style="left:1670px;top:585px;height:280px"></div>
+  </section>
+
+  <!-- 2 Dataset -->
+  <section class="slide s-cream">
+    <svg class="orn" data-o="rainbow" style="left:1610px;top:-40px;width:340px;height:190px"></svg>
+    <svg class="orn" data-o="daisy" style="left:1760px;top:900px;width:240px;height:240px"></svg>
+    <svg class="orn" data-o="star" data-fill="#FFCBA4" style="left:60px;top:930px;width:70px;height:70px"></svg>
+    <svg class="orn" data-o="star" data-fill="#A8D8F0" style="left:1080px;top:70px;width:56px;height:56px"></svg>
+    <h2 class="abs h" style="left:196px;top:110px">Dataset Overview</h2>
+    <div class="abs card panel reveal" style="--i:1">
+      <div class="col">
+        <div class="stat"><b>344</b><span>penguins measured</span></div>
+        <div class="stat" data-step="1"><b>3</b><span>species</span></div>
+        <div class="stat" data-step="2"><b>3</b><span>islands</span>
+          <i class="prop inl" data-prop="iceberg" style="width:90px;height:70px;margin-left:24px"></i>
+          <i class="prop inl" data-prop="iceberg" style="width:100px;height:80px;margin-left:16px"></i>
+          <i class="prop inl" data-prop="iceberg" style="width:80px;height:62px;margin-left:16px"></i>
+        </div>
+      </div>
+      <div class="col riders" data-step="1">
+        <div class="chart grow" data-chart="bars" data-values="152,68,124" data-names="Adélie,Chinstrap,Gentoo" data-colors="adelie,chinstrap,gentoo" data-max="160" data-labels="values"></div>
+        <div class="row"><div>Adélie</div><div>Chinstrap</div><div>Gentoo</div></div>
+      </div>
+      <i class="p3d" data-step="1" data-penguin="adelie" data-on="0" style="height:125px"></i>
+      <i class="p3d" data-step="1" data-penguin="chinstrap" data-on="1" style="height:118px"></i>
+      <i class="p3d" data-step="1" data-penguin="gentoo" data-on="2" data-act="wave" style="height:135px"></i>
+    </div>
+  </section>
+
+  <!-- 3 Pipeline -->
+  <section class="slide s-peach">
+    <svg class="orn" data-o="sun" style="left:1690px;top:-60px;width:260px;height:260px"></svg>
+    <svg class="orn" data-o="daisy" style="left:-80px;top:860px;width:260px;height:260px"></svg>
+    <svg class="orn" data-o="star" data-fill="#FDE68A" style="left:1520px;top:110px;width:64px;height:64px"></svg>
+    <svg class="orn" data-o="star" data-fill="#A8E6CF" style="left:60px;top:60px;width:60px;height:60px"></svg>
+    <h2 class="abs h on-bold" style="left:196px;top:110px">Classification Pipeline</h2>
+    <div class="abs" style="left:190px;top:300px;display:flex;align-items:center;gap:22px">
+      <div class="card step reveal" style="--i:1"><div class="circle" style="background:var(--coral)">1</div><h3>Inputs</h3><p>Four body measurements</p></div>
+      <div class="arrow" data-step="1">→</div>
+      <div class="card step" data-step="1"><div class="circle" style="background:var(--turquoise)">2</div><h3>Cleaning</h3><p>333 complete rows kept</p></div>
+      <div class="arrow" data-step="2">→</div>
+      <div class="card step" data-step="2"><div class="circle" style="background:#6FB8E0">3</div><h3>Split</h3><p>80% train, 20% test</p></div>
+      <div class="arrow" data-step="3">→</div>
+      <div class="card step" data-step="3"><div class="circle" style="background:#B77FD6">4</div><h3>Models</h3><p>Three classifiers</p></div>
+    </div>
+    <div class="abs" data-step="4" style="left:200px;top:780px">
+      <p class="title" style="margin-bottom:22px">Target: species</p>
+      <div style="display:flex;gap:16px">
+        <span class="pill"><i class="swatch" style="background:var(--peach)"></i>Adélie</span>
+        <span class="pill"><i class="swatch" style="background:var(--lavender)"></i>Chinstrap</span>
+        <span class="pill"><i class="swatch" style="background:var(--sky)"></i>Gentoo</span>
+      </div>
+    </div>
+    <div class="p3d" data-step="4" data-penguin="adelie" data-face="-15" style="left:1310px;top:790px;height:185px"></div>
+    <div class="p3d" data-step="4" data-penguin="chinstrap" data-face="-15" data-z="-3.2" style="left:1475px;top:800px;height:175px"></div>
+    <div class="p3d" data-step="4" data-penguin="gentoo" data-face="-15" style="left:1640px;top:775px;height:200px"></div>
+  </section>
+
+  <!-- 4 Feature space -->
+  <section class="slide s-cream">
+    <svg class="orn" data-o="cloud" style="left:1600px;top:40px;width:300px;height:150px"></svg>
+    <svg class="orn" data-o="daisy" style="left:-80px;top:860px;width:250px;height:250px"></svg>
+    <svg class="orn" data-o="star" data-fill="#F7C8D4" style="left:1810px;top:900px;width:66px;height:66px"></svg>
+    <svg class="orn" data-o="star" data-fill="#FDE68A" style="left:1120px;top:80px;width:54px;height:54px"></svg>
+    <h2 class="abs h" style="left:196px;top:110px">Feature Space</h2>
+    <div class="abs card panel reveal" style="--i:1">
+      <div class="col">
+        <ul class="dots">
+          <li style="--dot:var(--sky)">Gentoo: longest flippers</li>
+          <li data-step="1" style="--dot:var(--lavender)">Adélie vs Chinstrap: bill length</li>
+        </ul>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <span class="pill"><i class="swatch" style="background:var(--peach)"></i>Adélie</span>
+          <span class="pill"><i class="swatch" style="background:var(--lavender)"></i>Chinstrap</span>
+          <span class="pill"><i class="swatch" style="background:var(--sky)"></i>Gentoo</span>
+        </div>
+      </div>
+      <div class="col">
+        <div class="chart grow" data-chart="scatter" data-axes="bill length,flipper length"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 Model comparison -->
+  <section class="slide s-sky">
+    <svg class="orn" data-o="cloud" style="left:1560px;top:30px;width:320px;height:160px"></svg>
+    <svg class="orn" data-o="cloud" style="left:-60px;top:900px;width:280px;height:140px"></svg>
+    <svg class="orn" data-o="star" data-fill="#FDE68A" style="left:1820px;top:880px;width:70px;height:70px"></svg>
+    <svg class="orn" data-o="star" data-fill="#F7C8D4" style="left:1150px;top:80px;width:56px;height:56px"></svg>
+    <h2 class="abs h on-bold" style="left:196px;top:110px">Model Comparison</h2>
+    <div class="abs card panel reveal" style="--i:1">
+      <div class="col" data-step="1">
+        <div style="display:flex;align-items:center;gap:48px"><span class="big">98.5%</span><i class="prop inl" data-prop="trophy" style="width:170px;height:150px"></i></div>
+        <p class="body">random forest accuracy on the test set (mock values)</p>
+      </div>
+      <div class="col riders">
+        <div class="chart grow" data-chart="bars" data-values="97.0,98.5,95.5" data-names="Logistic regression,Random forest,k-NN" data-colors="#D4A5E8,#FDE68A,#A8E6CF" data-max="100" data-labels="values" data-format="{v}%"></div>
+        <div class="row"><div>Logistic<br>regression</div><div>Random<br>forest</div><div>k-NN</div></div>
+      </div>
+      <i class="p3d" data-step="1" data-penguin="gentoo" data-on="1" data-act="celebrate" style="height:125px"></i>
+    </div>
+  </section>
+
+  <!-- 6 Confusion matrix -->
+  <section class="slide s-cream">
+    <svg class="orn" data-o="daisy" style="left:1690px;top:-80px;width:300px;height:300px"></svg>
+    <svg class="orn" data-o="rainbow" style="left:-40px;top:930px;width:300px;height:170px"></svg>
+    <svg class="orn" data-o="star" data-fill="#A8E6CF" style="left:1090px;top:70px;width:58px;height:58px"></svg>
+    <h2 class="abs h" style="left:196px;top:110px">Confusion Matrix</h2>
+    <div class="abs card panel reveal" style="--i:1;grid-template-columns:1fr 600px">
+      <div class="col">
+        <div data-step="1" style="display:flex;align-items:flex-end;gap:56px">
+          <span class="big">66<span style="color:var(--text-muted);font-size:80px"> / 67</span></span>
+          <i class="p3d inl" data-step="2" data-penguin="chinstrap" data-act="confused" data-face="25" style="width:150px;height:170px"></i>
+        </div>
+        <p class="body" data-step="1">test penguins correct</p>
+        <ul class="dots" data-step="2"><li style="--dot:var(--coral)">One Chinstrap labelled Adélie</li></ul>
+      </div>
+      <div class="mx">
+        <p class="axis" style="align-self:end;text-align:right">Actual ↓</p>
+        <div><p class="axis">Predicted →</p><div class="row" style="margin-top:8px"><div>Adélie</div><div>Chinstrap</div><div>Gentoo</div></div></div>
+        <div class="mxrows"><div>Adélie</div><div>Chinstrap</div><div>Gentoo</div></div>
+        <div class="chart" data-chart="matrix" data-values="29,0,0,1,13,0,0,0,24" data-names="Adélie,Chinstrap,Gentoo" data-colors="adelie,chinstrap,gentoo" data-off="#F8635F" data-empty="#FFFFFF" style="position:relative;width:420px;height:420px">
+          <i class="prop" data-step="2" data-prop="magnifier" data-overlap-ok style="left:-10px;top:125px;width:160px;height:160px"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 Feature importance -->
+  <section class="slide s-mint">
+    <svg class="orn" data-o="daisy" style="left:1700px;top:-70px;width:280px;height:280px"></svg>
+    <svg class="orn" data-o="daisy" style="left:1790px;top:880px;width:220px;height:220px"></svg>
+    <svg class="orn" data-o="star" data-fill="#F7C8D4" style="left:70px;top:930px;width:66px;height:66px"></svg>
+    <svg class="orn" data-o="star" data-fill="#FDE68A" style="left:1120px;top:80px;width:56px;height:56px"></svg>
+    <h2 class="abs h on-soft" style="left:196px;top:110px">Feature Importance</h2>
+    <div class="abs card panel reveal" style="--i:1;grid-template-columns:440px 1fr">
+      <div class="col" data-step="1">
+        <p class="body">Flipper and bill length do two thirds of the work</p>
+        <div style="display:flex;align-items:flex-end;gap:28px">
+          <i class="p3d inl" data-penguin="adelie" data-act="wave" style="width:190px;height:220px"></i>
+          <i class="prop inl" data-prop="ruler" style="width:200px;height:80px;margin-bottom:40px"></i>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:260px 1fr;gap:24px;height:440px">
+        <div class="hlabels"><div>Flipper length</div><div>Bill length</div><div>Bill depth</div><div>Body mass</div></div>
+        <div class="chart grow" data-chart="hbars" data-values="0.36,0.33,0.19,0.12" data-names="Flipper length,Bill length,Bill depth,Body mass" data-colors="#7ECDC0,#A8D8F0,#D4A5E8,#FFCBA4" data-max="0.4" data-labels="values"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 Takeaways -->
+  <section class="slide s-turquoise">
+    <svg class="orn" data-o="sun" style="left:-60px;top:-60px;width:250px;height:250px"></svg>
+    <svg class="orn" data-o="daisy" style="left:1700px;top:-80px;width:300px;height:300px"></svg>
+    <svg class="orn" data-o="star" data-fill="#F7C8D4" style="left:1060px;top:90px;width:64px;height:64px"></svg>
+    <svg class="orn" data-o="star" data-fill="#FDE68A" style="left:60px;top:940px;width:66px;height:66px"></svg>
+    <h2 class="abs h on-bold" style="left:196px;top:110px">Key Takeaways</h2>
+    <div class="abs card stack reveal" style="left:200px;top:290px;width:880px;height:640px;padding:72px 64px;--i:1">
+      <ol class="num">
+        <li><span style="background:var(--coral)">1</span>Body measurements separate the species</li>
+        <li data-step="1"><span style="background:#6FB8E0">2</span>Flipper and bill length matter most</li>
+        <li data-step="2"><span style="background:#B77FD6">3</span>Next: test on new seasons</li>
+      </ol>
+    </div>
+    <div class="abs platform" style="left:1150px;top:820px;width:660px;height:110px"></div>
+    <div class="prop" data-step="2" data-prop="flag" style="left:1120px;top:560px;width:120px;height:250px"></div>
+    <div class="p3d" data-penguin="adelie" data-act="celebrate" style="left:1290px;top:600px;height:265px"></div>
+    <div class="p3d" data-penguin="chinstrap" data-act="celebrate" data-z="-3.2" style="left:1480px;top:620px;height:245px"></div>
+    <div class="p3d" data-penguin="gentoo" data-act="celebrate" style="left:1670px;top:585px;height:280px"></div>
+  </section>
+
+  <div class="abs counter" id="count">1 / 8</div>
+  <div class="abs navdots" id="navdots"></div>
+</main>
+</div>
+
+
+<!--@STAGE3D@-->
+<script>
+/* === ORNAMENTS (Daisy Days vocabulary) === */
+const INKC = '#2D2D2D';
+const ORN = {
+  daisy: ['-100 -100 200 200', () => {
+    let p = '';
+    for (let i = 0; i < 6; i++) p += `<ellipse cx="0" cy="-52" rx="28" ry="44" fill="#fff" stroke="${INKC}" stroke-width="3" transform="rotate(${i * 60})"/>`;
+    return `<g class="spin">${p}<circle r="30" fill="#FDE68A" stroke="${INKC}" stroke-width="3"/></g>`;
+  }],
+  star: ['-40 -40 80 80', el => {
+    const pts = [];
+    for (let i = 0; i < 10; i++) { const a = Math.PI / 5 * i - Math.PI / 2, r = i % 2 ? 14 : 32; pts.push(`${(Math.cos(a) * r).toFixed(1)},${(Math.sin(a) * r).toFixed(1)}`); }
+    return `<polygon class="tw" style="animation-delay:${(Math.random() * 3).toFixed(1)}s" points="${pts.join(' ')}" fill="${el.dataset.fill || '#FDE68A'}" stroke="${INKC}" stroke-width="3" stroke-linejoin="round"/>`;
+  }],
+  sun: ['-100 -100 200 200', () => {
+    let r = '';
+    for (let i = 0; i < 10; i++) r += `<rect x="-9" y="-92" width="18" height="30" rx="9" fill="#FDE68A" stroke="${INKC}" stroke-width="3" transform="rotate(${i * 36})"/>`;
+    return `<g class="spin">${r}</g><circle r="56" fill="#FDE68A" stroke="${INKC}" stroke-width="3"/><circle cx="-18" cy="-8" r="5" fill="${INKC}"/><circle cx="18" cy="-8" r="5" fill="${INKC}"/><path d="M-20 14 Q0 32 20 14" stroke="${INKC}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+  }],
+  cloud: ['0 0 260 130', () => `<path d="M40 112 Q8 112 12 84 Q16 58 46 62 Q50 28 90 28 Q120 6 150 34 Q184 20 204 52 Q244 50 248 82 Q252 112 218 112 Z" fill="#fff" stroke="${INKC}" stroke-width="3"/><path d="M60 112 Q70 96 92 100" stroke="#A8D8F0" stroke-width="6" fill="none" stroke-linecap="round"/>`],
+  rainbow: ['0 0 300 170', () => ['#F8635F', '#FDE68A', '#A8E6CF', '#A8D8F0'].map((c, i) => {
+    const r = 140 - i * 26;
+    return `<path d="M${150 - r} 160 A${r} ${r} 0 0 1 ${150 + r} 160" stroke="${INKC}" stroke-width="${26}" fill="none"/><path d="M${150 - r} 160 A${r} ${r} 0 0 1 ${150 + r} 160" stroke="${c}" stroke-width="20" fill="none"/>`;
+  }).join('')],
+};
+document.querySelectorAll('.orn').forEach(el => {
+  const [vb, draw] = ORN[el.dataset.o];
+  el.setAttribute('viewBox', vb);
+  el.innerHTML = draw(el);
+});
+document.getElementById('navdots').innerHTML = '<i></i>'.repeat(document.querySelectorAll('.slide').length);
+</script>
+
+<script>window.NICE_MOTION = { ease: 'back.out(1.6)' };</script>
+<!--@NICE_JS@-->
+</body>
+</html>

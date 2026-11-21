@@ -1,0 +1,10 @@
+node_modules/
+.build/
+dist/
+__pycache__/
+*.pyc
+.frontend-slides/
+*.png
+*.pdf
+*.pptx
+!docs/**

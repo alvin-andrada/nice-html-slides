@@ -1,0 +1,25 @@
+/* nice-html-slides layer: 3D canvas, anchors, auto builds, export modes, edit chrome */
+.stage3d-canvas { position: absolute; inset: 0; width: 1920px !important; height: 1080px !important; max-width: none; max-height: none; z-index: 3; pointer-events: none; }
+.stage3d-labels { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.l3d { position: absolute; font: 600 30px/1 var(--font-display, inherit); color: var(--text-dark, #222); white-space: nowrap; }
+.l3d-top { transform: translate(-50%, -100%); }
+.l3d-q { font-size: 64px; color: var(--accent, #f8635f); -webkit-text-stroke: 2px var(--text-dark, #222); transition: opacity .3s; }
+.p3d { position: absolute; width: 10px; }
+.prop { position: absolute; }
+.inl { position: relative !important; display: inline-block; vertical-align: middle; flex: none; }
+.chart { position: absolute; z-index: 2; }
+.chart.grow { position: relative; flex: 1; min-height: 0; width: 100%; height: 100%; }
+.chart2d { overflow: visible; max-width: none; max-height: none; }
+
+.reveal { opacity: 0; transform: translateY(30px); transition: opacity .7s cubic-bezier(.16, 1, .3, 1), transform .7s cubic-bezier(.16, 1, .3, 1); transition-delay: calc(var(--i, 0) * .09s); }
+.slide.visible .reveal { opacity: 1; transform: none; transition-delay: calc(.25s + var(--i, 0) * .09s); }
+.slide [data-step]:not(.built) { opacity: 0; }
+html.exporting .reveal, html.exporting .slide { transition: none !important; }
+html.export-notext .export-hide { color: transparent !important; text-shadow: none !important; }
+html.export-notext .export-hide * { color: transparent !important; }
+html.export-charts-native [data-chart] > svg { visibility: hidden; }
+
+.edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; cursor: pointer; }
+.edit-toggle { position: fixed; top: 18px; left: 18px; z-index: 10001; border: 2px solid currentColor; border-radius: 50%; width: 48px; height: 48px; background: #fff; font-size: 20px; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s; }
+.edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
+[contenteditable="true"] { outline: 2px dashed var(--accent, #f8635f); outline-offset: 6px; }
