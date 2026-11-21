@@ -1,6 +1,6 @@
 ---
 name: nice-html-slides
-description: Lively, speaker-led HTML slide decks built on frontend-slides, with optional 3D props and mascots, auto-playing entrances, slide transitions, styled 2D charts, automated visual checks, and PDF/hybrid PPTX export on request. Use when the user wants an HTML presentation that feels animated and polished, wants 3D accents or props in slides, or asks for nice-html-slides by name.
+description: Lively HTML slide decks (speaker-led by default, reading-first on request) built on frontend-slides, with optional 3D props and mascots, auto-playing entrances, slide transitions, styled 2D charts, automated visual checks, and PDF/hybrid PPTX export on request. Use when the user wants an HTML presentation that feels animated and polished, wants 3D accents or props in slides, or asks for nice-html-slides by name.
 ---
 
 # nice-html-slides
@@ -9,16 +9,15 @@ An extension layer for the `frontend-slides` skill. frontend-slides owns content
 
 Read `RULES.md` before generating. It is the full rule set; the summary below is the order of work.
 
-## Requirements
+## Requirements and first use
 
-- The `frontend-slides` skill installed. Use its phases, presets, bold templates and `viewport-base.css`.
-- Node.js (for `npm`/`npx esbuild`) and Python 3 with `playwright`, `pillow` and `python-pptx`.
-- First run in this folder: `npm install` and `python -m playwright install chromium`.
+- The `frontend-slides` skill must be installed next to this one. Load its SKILL.md at the start of every deck and follow its phases; this skill only changes the points listed below. If it is missing, tell the user to install it (https://github.com/zarazhangrui/frontend-slides) and stop.
+- Node.js and Python 3. When `node_modules/` is missing in this folder, run `python scripts/setup.py` yourself (npm packages, `playwright`, `pillow`, `python-pptx`, Chromium) before building.
 
 ## Workflow
 
-### 1. Content (frontend-slides Phase 1, with two changes)
-- Default density is low density / speaker-led. Only switch when the user asks for a reading deck.
+### 1. Content (frontend-slides Phase 1, with one addition)
+- Ask frontend-slides' questions as written, including density: speaker-led (low density) or reading-first (high density). Recommend speaker-led for live talks and use it when the user does not answer. The choice sets the type scale in `RULES.md` and the font floor for the checks.
 - Add one question about accents, with these options described in plain words:
   - **None**: typography and charts carry the deck. Lightest file, most formal.
   - **Content props**: small objects tied to each slide's point (a trophy for the best model, a magnifier on an error). Adds about 550 KB when 3D.
@@ -26,7 +25,7 @@ Read `RULES.md` before generating. It is the full rule set; the summary below is
   - **2D or 3D**: flat SVG sprites are lighter; 3D gives depth and characters that move between slides.
 
 ### 2. Style (frontend-slides Phase 2)
-- Generate the three previews exactly as frontend-slides prescribes. The style decides the look.
+- Generate the three previews exactly as frontend-slides prescribes, using its presets and its bold template pack (`selection-index.json` first, a candidate's `preview.md` for previews, the picked template's full `design.md` before generating). The style decides the look.
 - Where accents are wanted, give each preview a different accent option, so style and accent are chosen together.
 - Formal or public talks: pick styles by catalog metadata (formality, mood, tone). If none fit or the fitting ones were used, use the custom wildcard path in the same register.
 - Previews are single files with `<!--@BASE@-->` and `<!--@FIT@-->` markers; build them with `python build.py preview.html`.
@@ -57,7 +56,7 @@ The built-in mascot is a penguin (`adelie`, `chinstrap`, `gentoo`) and the props
 ### 4. Build and check (every change)
 ```
 python build.py path/to/deck.html                      # -> path/to/dist/deck.html
-python scripts/qa.py path/to/dist/deck.html            # must print "ok"
+python scripts/qa.py path/to/dist/deck.html            # must print "ok"; add --min 22 for reading-first decks
 python build.py qa/props.html && python scripts/turntable.py qa/dist/props.html turntable.png   # after any prop change
 python scripts/sheet.py path/to/dist/deck.html sheet.png                                     # look at it
 python scripts/sheet.py path/to/dist/deck.html film.png --film 8                             # when motion changed

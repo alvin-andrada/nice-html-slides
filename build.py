@@ -21,9 +21,10 @@ RUNTIME = ROOT / "runtime"
 NM = ROOT / "node_modules"
 
 
-def npm(*args):
+def npm(*args, quiet=False):
     cmd = shutil.which("npm") or "npm"
-    subprocess.run([cmd, *args], cwd=ROOT, check=True)
+    out = subprocess.DEVNULL if quiet else None
+    subprocess.run([cmd, *args], cwd=ROOT, check=True, stdout=out, stderr=out)
 
 
 def font_files(spec):
@@ -38,7 +39,7 @@ def font_files(spec):
     var = NM / f"@fontsource-variable/{slug}" / "files"
     if not (var / f"{slug}-latin-wght-normal.woff2").exists():
         try:
-            npm("install", "--no-save", f"@fontsource-variable/{slug}")
+            npm("install", "--no-save", f"@fontsource-variable/{slug}", quiet=True)
         except subprocess.CalledProcessError:
             pass
     if (var / f"{slug}-latin-wght-normal.woff2").exists():
