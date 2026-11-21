@@ -9,11 +9,11 @@ An extension layer for the `frontend-slides` skill. frontend-slides owns content
 
 Read `RULES.md` before generating. It is the full rule set; the summary below is the order of work.
 
-## Requirements and first use
+## Requirements
 
-- The `frontend-slides` skill. If it is not installed, install it next to this skill from https://github.com/zarazhangrui/frontend-slides (or ask the user to), then continue.
-- Node.js and Python 3 on the machine.
-- Before the first build, if `node_modules/` is missing in this folder, run `python scripts/setup.py` yourself. It installs the build packages, the Python packages and a headless browser. Do not ask the user to run setup commands.
+- The `frontend-slides` skill installed. Use its phases, presets, bold templates and `viewport-base.css`.
+- Node.js (for `npm`/`npx esbuild`) and Python 3 with `playwright`, `pillow` and `python-pptx`.
+- First run in this folder: `npm install` and `python -m playwright install chromium`.
 
 ## Workflow
 
@@ -45,7 +45,7 @@ Data attributes:
 | Attribute | On | Meaning |
 |---|---|---|
 | `data-step="n"` | any element | plays in n groups after the slide enters (auto); click-driven only with `data-builds="click"` on the stage |
-| `data-chart="bars\|hbars\|matrix\|scatter"` | `.chart` | 2D SVG chart; also `data-values`, `data-colors`, `data-min`, `data-max`, `data-labels="values"`, `data-format="{v}%"`, `data-names`, `data-off`, `data-empty`, `data-axes` |
+| `data-chart="bars\|hbars\|matrix\|scatter"` | `.chart` | 2D SVG chart; also `data-values`, `data-colors`, `data-min`, `data-max`, `data-labels="values"`, `data-format="{v}%"`, `data-names`, `data-off`, `data-empty`, `data-axes`, `data-keys` (scatter fields; axis ranges fit the data) |
 | `data-depth="3d"` | `.chart` | 3D chart instead of 2D; only when the user asks |
 | `data-penguin="kind"` | `.p3d` anchor | mascot placed in the anchor box; `data-act` (idle, wave, jump, celebrate, confused), `data-face` (degrees), `data-on="i"` (stand on bar i), `data-z` (depth layer) |
 | `data-prop="name"` | `.prop` anchor | low-poly prop fitted to the anchor box; `data-anim="spin"` only for props that read well from every angle; `data-z` |
@@ -59,7 +59,6 @@ The built-in mascot is a penguin (`adelie`, `chinstrap`, `gentoo`) and the props
 python build.py path/to/deck.html                      # -> path/to/dist/deck.html
 python scripts/qa.py path/to/dist/deck.html            # must print "ok"
 python build.py qa/props.html && python scripts/turntable.py qa/dist/props.html turntable.png   # after any prop change
-python build.py qa/mascots.html && python scripts/turntable.py qa/dist/mascots.html poses.png --time   # after any mascot change
 python scripts/sheet.py path/to/dist/deck.html sheet.png                                     # look at it
 python scripts/sheet.py path/to/dist/deck.html film.png --film 8                             # when motion changed
 ```
@@ -77,4 +76,4 @@ python scripts/export.py path/to/dist/deck.html --pdf deck.pdf --pptx deck.pptx 
 PDF: one image per slide at final state. PPTX (hybrid): native text boxes, native charts and tables, decor and 3D as an image layer. Use `--charts image` to keep charts as pictures. After exporting, render the PPTX once and check it.
 
 ## Example
-`examples/palmer-penguins/deck.html` is a reference for syntax only: how markers, anchors and data attributes are written. Open it only when unsure how an attribute is used. Never copy its style, palette, layout, copy, ornaments, mascot or props into a new deck; the style comes from the user's frontend-slides choice and the accents from the user's answer and the deck's own content. A deck that is not about penguins never gets penguins.
+`examples/palmer-penguins/deck.html` is a complete deck in the Daisy Days style using mascots, props, all four chart types, auto builds and transitions.

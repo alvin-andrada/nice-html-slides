@@ -68,6 +68,22 @@ CHECK_JS = r"""([minSize, minInset]) => {
       if (host && (b.x < host.x + 6 || b.x + b.width > host.x + host.width - 6)) issues.push(`label wider than bar: "${t.textContent}"`);
     });
   });
+  // chart marks stay inside the plot area (or the chart box when there are no axes)
+  slide.querySelectorAll('.chart2d').forEach(svg => {
+    const pa = svg.querySelector('.plot-area'), lines = [...svg.querySelectorAll('.axis line')].map(l => l.getBBox());
+    const vb = svg.viewBox.baseVal;
+    let a = pa ? pa.getBBox() : { x: 0, y: 0, width: vb.width, height: vb.height };
+    if (!pa && lines.length) {
+      const x0 = Math.min(...lines.map(b => b.x)), y0 = Math.min(...lines.map(b => b.y));
+      a = { x: x0, y: y0, width: Math.max(...lines.map(b => b.x + b.width)) - x0, height: Math.max(...lines.map(b => b.y + b.height)) - y0 };
+    }
+    let out = 0;
+    svg.querySelectorAll(':scope > circle, :scope > rect:not(.plot-area), :scope > g:not(.axis) > rect').forEach(m => {
+      const b = m.getBBox();
+      if (b.x < a.x - 0.5 || b.y < a.y - 0.5 || b.x + b.width > a.x + a.width + 0.5 || b.y + b.height > a.y + a.height + 0.5) out++;
+    });
+    if (out) issues.push(`${out} chart mark(s) outside the plot area`);
+  });
   // breathing room: anything on a card keeps a minimum inset from its edges
   const inset = (b, c) => Math.min(b[0] - c[0], b[1] - c[1], c[0] + c[2] - b[0] - b[2], c[1] + c[3] - b[1] - b[3]);
   const within = (b, c) => b[0] >= c[0] - 1 && b[1] >= c[1] - 1 && b[0] + b[2] <= c[0] + c[2] + 1 && b[1] + b[3] <= c[1] + c[3] + 1;

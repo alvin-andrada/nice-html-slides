@@ -16,6 +16,19 @@ function text(parent, x, y, str, cls, anchor = 'middle') {
   return t;
 }
 
+// axis range rounded outward to a 1/2/5 step so every value sits inside it
+function niceDomain(vals, n = 4) {
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  if (lo === hi) { lo -= 1; hi += 1; }
+  const raw = (hi - lo) / n, mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 5, 10].map(m => m * mag).find(s => s >= raw);
+  lo = Math.floor(lo / step) * step;
+  hi = Math.ceil(hi / step) * step;
+  const ticks = [];
+  for (let v = lo; v <= hi + step / 2; v += step) ticks.push(+v.toFixed(6));
+  return { lo, hi, ticks };
+}
+
 function build(el, col, points) {
   const w = el.clientWidth, h = el.clientHeight, type = el.dataset.chart;
   const raw = (el.dataset.values || '').split(',').filter(Boolean).map(v => v.trim());
@@ -56,19 +69,24 @@ function build(el, col, points) {
       c.marks.push(g);
     });
   } else if (type === 'scatter') {
-    const pl = 110, pb = 96, pw = w - pl, ph = h - pb;
+    const r = 7, pad = r + 6, pl = 110, pb = 96, pt = 24, pw = w - pl, ph = h - pb;
     const [xa, ya] = (el.dataset.axes || 'x,y').split(',');
-    const sx = v => pl + ((v - 30) / 32) * pw, sy = v => ph - ((v - 168) / 70) * ph;
+    const [xk, yk] = (el.dataset.keys || 'bill,flipper').split(',').map(k => k.trim());
+    const xd = niceDomain(points.map(p => p[xk])), yd = niceDomain(points.map(p => p[yk]));
+    // marks are inset from the axes by their radius so edge points never cross them
+    const sx = v => pl + pad + ((v - xd.lo) / (xd.hi - xd.lo)) * (pw - 2 * pad);
+    const sy = v => ph - pad - ((v - yd.lo) / (yd.hi - yd.lo)) * (ph - pt - 2 * pad);
+    node('rect', { x: pl, y: pt, width: pw, height: ph - pt, fill: 'none', class: 'plot-area' }, svg);
     const ax = node('g', { class: 'axis' }, svg);
     node('line', { x1: pl, x2: w, y1: ph, y2: ph }, ax);
-    node('line', { x1: pl, x2: pl, y1: 0, y2: ph }, ax);
-    for (let v = 35; v <= 60; v += 5) text(ax, sx(v), ph + 34, v, 'tick');
-    for (let v = 170; v <= 230; v += 20) text(ax, pl - 14, sy(v), v, 'tick', 'end');
+    node('line', { x1: pl, x2: pl, y1: pt, y2: ph }, ax);
+    xd.ticks.forEach(v => text(ax, sx(v), ph + 34, v, 'tick'));
+    yd.ticks.forEach(v => text(ax, pl - 14, sy(v), v, 'tick', 'end'));
     text(ax, pl + pw / 2, h - 10, `${xa.trim()} (mm)`, 'title');
     const yt = text(ax, 0, 0, `${ya.trim()} (mm)`, 'title');
-    yt.setAttribute('transform', `translate(22 ${ph / 2}) rotate(-90)`);
+    yt.setAttribute('transform', `translate(22 ${(pt + ph) / 2}) rotate(-90)`);
     points.forEach(p => {
-      c.marks.push(node('circle', { cx: sx(p.bill), cy: sy(p.flipper), r: 7, fill: col(p.species), 'fill-opacity': 0.85 }, svg));
+      c.marks.push(node('circle', { cx: sx(p[xk]), cy: sy(p[yk]), r, fill: col(p.species), 'fill-opacity': 0.85 }, svg));
     });
   }
   el.appendChild(svg);
