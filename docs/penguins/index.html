@@ -4402,5 +4402,24 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('input', () => { if (editor.isActive) editor.save(); });
 </script>
+<a class="demo-home" href="../">&larr; All demos</a>
+<style>
+.demo-home { position: fixed; top: 16px; right: 16px; z-index: 9999; font: 600 14px/1 system-ui, sans-serif; letter-spacing: .02em;
+  color: #fff; background: rgba(20, 20, 24, .78); padding: 10px 14px; border-radius: 999px; text-decoration: none;
+  opacity: 0; transform: translateY(-6px); transition: opacity .25s, transform .25s; backdrop-filter: blur(6px); }
+.demo-home.show, .demo-home:focus-visible { opacity: 1; transform: none; }
+.exporting .demo-home { display: none; }
+</style>
+<script>
+(() => {
+  const a = document.querySelector('.demo-home');
+  let t;
+  const wake = () => { a.classList.add('show'); clearTimeout(t); t = setTimeout(() => a.matches(':hover') || a.classList.remove('show'), 2200); };
+  addEventListener('mousemove', wake);
+  addEventListener('touchstart', wake, { passive: true });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !document.querySelector('#editToggle.active')) location.href = '../'; });
+  wake();
+})();
+</script>
 </body>
 </html>

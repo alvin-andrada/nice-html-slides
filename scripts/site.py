@@ -26,8 +26,35 @@ DEMOS = [
 DOCS = ROOT / "docs"
 
 
-def build(src, out):
+# demo decks only: a link back to the gallery that shows while the mouse moves
+HOME_LINK = """<a class="demo-home" href="../">&larr; All demos</a>
+<style>
+.demo-home { position: fixed; top: 16px; right: 16px; z-index: 9999; font: 600 14px/1 system-ui, sans-serif; letter-spacing: .02em;
+  color: #fff; background: rgba(20, 20, 24, .78); padding: 10px 14px; border-radius: 999px; text-decoration: none;
+  opacity: 0; transform: translateY(-6px); transition: opacity .25s, transform .25s; backdrop-filter: blur(6px); }
+.demo-home.show, .demo-home:focus-visible { opacity: 1; transform: none; }
+.exporting .demo-home { display: none; }
+</style>
+<script>
+(() => {
+  const a = document.querySelector('.demo-home');
+  let t;
+  const wake = () => { a.classList.add('show'); clearTimeout(t); t = setTimeout(() => a.matches(':hover') || a.classList.remove('show'), 2200); };
+  addEventListener('mousemove', wake);
+  addEventListener('touchstart', wake, { passive: true });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !document.querySelector('#editToggle.active')) location.href = '../'; });
+  wake();
+})();
+</script>
+"""
+
+
+def build(src, out, home=False):
     subprocess.run([sys.executable, str(ROOT / "build.py"), str(src), str(out)], check=True)
+    if home:
+        html = out.read_text(encoding="utf-8")
+        i = html.rindex("</body>")
+        out.write_text(html[:i] + HOME_LINK + html[i:], encoding="utf-8")
 
 
 async def thumbs():
@@ -38,7 +65,7 @@ async def thumbs():
             await page.goto((DOCS / slug / "index.html").as_uri())
             await page.wait_for_timeout(1500)
             await page.evaluate("document.documentElement.classList.add('exporting')")
-            await page.add_style_tag(content=".edit-toggle, .edit-hotzone { display: none !important; }")
+            await page.add_style_tag(content=".edit-toggle, .edit-hotzone, .demo-home { display: none !important; }")
             for n, i in (("a", 0), ("b", second)):
                 await page.evaluate(f"deck.show({i}, true, true); deck.stage3d && deck.stage3d.settle();")
                 await page.wait_for_timeout(600)
@@ -50,7 +77,7 @@ def main():
     (DOCS / "thumbs").mkdir(parents=True, exist_ok=True)
     for slug, src, _ in DEMOS:
         (DOCS / slug).mkdir(exist_ok=True)
-        build(ROOT / "examples" / src / "deck.html", DOCS / slug / "index.html")
+        build(ROOT / "examples" / src / "deck.html", DOCS / slug / "index.html", home=True)
     build(ROOT / "site" / "gallery.html", DOCS / "index.html")
     asyncio.run(thumbs())
     print("docs/ rebuilt")
