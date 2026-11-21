@@ -47,8 +47,8 @@ Working rules for the frontend-slides + 3D accent skill. They override template 
 30. Deliberate overlaps (a magnifier over a matrix cell) are marked `data-overlap-ok`; every other overlap is a defect.
 
 ## Checks before delivery
-31. `export/qa.py` runs two passes, instant and animated, and checks: minimum font size; contrast against the real background (including chrome like the slide counter); text off the slide; text overlap; text or groups crossing a card edge; content closer than the minimum inset to a card edge; bar labels that do not fit; 3D objects at their highest animation pose leaving their card, overlapping a card they do not belong to, or covering text; 3D objects intersecting each other.
-32. `export/turntable.py`: every 3D prop rendered at four angles after any prop change.
+31. `scripts/qa.py` runs two passes, instant and animated, sampling several moments in each because idle animations keep moving. It checks: minimum font size; contrast against the real background (including chrome like the slide counter); text off the slide; text overlap; text or groups crossing a card edge; content closer than the minimum inset to a card edge; bar labels that do not fit; 3D objects at their highest animation pose leaving their card, overlapping a card they do not belong to, covering text, or touching slide chrome; 3D objects intersecting each other.
+32. `scripts/turntable.py`: every 3D prop rendered at four angles after any prop change, and every mascot pose at four moments after any mascot change (parts must move together; raised limbs must read against the body).
 33. Contact sheet of all slides after each change, captured through the animated path; a short motion filmstrip when motion changed.
 34. Loop: fix what the checks find, rerun until clean, then look at the slides. Any visible problem the checks missed becomes a new check before the fix, and the new check must flag the old build.
 

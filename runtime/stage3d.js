@@ -57,6 +57,8 @@ function makePenguin(kind) {
   const root = new Group();
   const body = new Group();
   root.add(body);
+  // flippers a shade lighter than the body so a raised flipper still reads against it
+  const flipperMat = toon(new Color(THEME.body).lerp(new Color('#ffffff'), 0.3));
   const black = toon(THEME.body), white = toon('#ffffff'), pink = toon('#ff9eb5');
   const beakMat = toon(kind === 'gentoo' ? '#ff7a1a' : '#3b3f4a');
   const feetMat = toon(kind === 'gentoo' ? '#ff8c2a' : '#f4a6a0');
@@ -92,10 +94,10 @@ function makePenguin(kind) {
     const pivot = new Group();
     pivot.position.set(sx * 0.74, 1.25, 0);
     body.add(pivot);
-    part(sphere, black, pivot, [0, -0.45, 0], [0.12, 0.52, 0.3], [0, 0, sx * 0.2]);
+    part(sphere, flipperMat, pivot, [0, -0.45, 0], [0.12, 0.52, 0.3], [0, 0, sx * 0.2]);
     flippers.push(pivot);
   }
-  for (const sx of [-1, 1]) part(sphere, feetMat, root, [sx * 0.3, 0.06, 0.38], [0.24, 0.08, 0.32]);
+  for (const sx of [-1, 1]) part(sphere, feetMat, body, [sx * 0.3, 0.06, 0.38], [0.24, 0.08, 0.32]);
   const shadow = part(new CircleGeometry(1, 32), shadowMat, root, [0, 0.01, 0.1], [1.05, 0.8, 1], [-Math.PI / 2, 0, 0]);
 
   const size = new Box3().setFromObject(root).getSize(new Vector3());
@@ -454,14 +456,15 @@ export function init(stageEl) {
       let tilt = Math.sin(t * 2 + p.phase) * 0.05, hop = Math.abs(Math.sin(t * 4 + p.phase)) * 0.02;
       let fl = 0.15, fr = 0.15;
       if (p.moving) { tilt = Math.sin(t * 14) * 0.18; hop = Math.abs(Math.sin(t * 14)) * 0.1; }
-      else if (p.act === 'wave') fl = 2.3 + Math.sin(t * 9) * 0.35;
+      else if (p.act === 'wave') { fl = 2.3 + Math.sin(t * 9) * 0.35; tilt = 0.06; }
       else if (p.act === 'jump') { hop = Math.max(0, Math.sin(t * 5 + p.phase)) * 0.45; fl = fr = 0.5; }
-      else if (p.act === 'celebrate') { hop = Math.max(0, Math.sin(t * 6 + p.phase)) * 0.5; fl = fr = 1.3 + Math.sin(t * 12) * 0.4; }
+      else if (p.act === 'celebrate') { hop = Math.max(0, Math.sin(t * 6 + p.phase)) * 0.5; fl = fr = 2.5 + Math.sin(t * 12) * 0.3; }
       else if (p.act === 'confused') { tilt = 0.26 + Math.sin(t * 1.5) * 0.04; fr = 0.6; }
       p.body.rotation.z = tilt;
       p.body.position.y = hop;
-      p.flL.rotation.z = fl;
-      p.flR.rotation.z = -fr;
+      // positive values swing each flipper outward, away from the body
+      p.flL.rotation.z = -fl;
+      p.flR.rotation.z = fr;
       p.shadow.scale.set(1.05 - hop * 0.6, 0.8 - hop * 0.45, 1);
       const blink = (t + p.phase * 3) % 3.4 < 0.12 ? 0.12 : 1;
       p.eyes.forEach(e => { e.scale.y = blink; });

@@ -1,0 +1,11 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Mascot poses</title><!--@BASE@-->
+<style>:root{--stage-bg:#f5f0e6;--s3d-outline:#2D2D2D;--s3d-outline-width:0.006} .deck-stage{background:#f5f0e6}</style></head>
+<body><div class="deck-viewport"><main class="deck-stage">
+<section class="slide"><div class="p3d" data-penguin="adelie" data-act="idle" style="left:360px;top:300px;height:480px"></div><div class="p3d" data-penguin="chinstrap" data-act="wave" style="left:960px;top:300px;height:480px"></div><div class="p3d" data-penguin="gentoo" data-act="jump" style="left:1560px;top:300px;height:480px"></div></section>
+<section class="slide"><div class="p3d" data-penguin="adelie" data-act="celebrate" style="left:360px;top:300px;height:480px"></div><div class="p3d" data-penguin="chinstrap" data-act="confused" style="left:960px;top:300px;height:480px"></div><div class="p3d" data-penguin="gentoo" data-act="wave" style="left:1560px;top:300px;height:480px"></div></section>
+</main></div>
+<!--@STAGE3D@-->
+<script>window.s3d = Stage3D.init(document.querySelector('.deck-stage'));
+window.showPose = i => { const s = document.querySelectorAll('.slide'); s.forEach((el, n) => el.classList.toggle('active', n === i)); s3d.show(s[i], true); };
+showPose(0);</script>
+<!--@FIT@--></body></html>

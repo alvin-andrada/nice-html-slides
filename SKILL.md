@@ -9,11 +9,11 @@ An extension layer for the `frontend-slides` skill. frontend-slides owns content
 
 Read `RULES.md` before generating. It is the full rule set; the summary below is the order of work.
 
-## Requirements
+## Requirements and first use
 
-- The `frontend-slides` skill installed. Use its phases, presets, bold templates and `viewport-base.css`.
-- Node.js (for `npm`/`npx esbuild`) and Python 3 with `playwright`, `pillow` and `python-pptx`.
-- First run in this folder: `npm install` and `python -m playwright install chromium`.
+- The `frontend-slides` skill. If it is not installed, install it next to this skill from https://github.com/zarazhangrui/frontend-slides (or ask the user to), then continue.
+- Node.js and Python 3 on the machine.
+- Before the first build, if `node_modules/` is missing in this folder, run `python scripts/setup.py` yourself. It installs the build packages, the Python packages and a headless browser. Do not ask the user to run setup commands.
 
 ## Workflow
 
@@ -59,6 +59,7 @@ The built-in mascot is a penguin (`adelie`, `chinstrap`, `gentoo`) and the props
 python build.py path/to/deck.html                      # -> path/to/dist/deck.html
 python scripts/qa.py path/to/dist/deck.html            # must print "ok"
 python build.py qa/props.html && python scripts/turntable.py qa/dist/props.html turntable.png   # after any prop change
+python build.py qa/mascots.html && python scripts/turntable.py qa/dist/mascots.html poses.png --time   # after any mascot change
 python scripts/sheet.py path/to/dist/deck.html sheet.png                                     # look at it
 python scripts/sheet.py path/to/dist/deck.html film.png --film 8                             # when motion changed
 ```

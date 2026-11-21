@@ -23,12 +23,7 @@ Built as an agent skill on top of [frontend-slides](https://github.com/zarazhang
    ```
    git clone https://github.com/alvin-andrada/nice-html-slides.git ~/.claude/skills/nice-html-slides
    ```
-3. In this folder:
-   ```
-   npm install
-   pip install playwright pillow python-pptx
-   python -m playwright install chromium
-   ```
+3. Have Node.js and Python 3 installed. The agent runs the one-time setup (`python scripts/setup.py`) on first use, or run it yourself.
 
 ## Usage
 

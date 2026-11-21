@@ -82,6 +82,11 @@ CHECK_JS = r"""([minSize, minInset]) => {
     const home = cards.find(c => fx >= c[0] && fx <= c[0] + c[2] && fy >= c[1] && fy <= c[1] + c[3]);
     if (home) { if (!within(o.rect, home) || inset(o.rect, home) < 12) issues.push(`${o.name} leaves its card`); }
     else if (cards.some(c => over(o.rect, c))) issues.push(`${o.name} overlaps a card`);
+    // slide chrome (counter, nav dots) must stay clear of 3D objects
+    for (const ch of deck.stage.querySelectorAll(':scope > .counter, :scope > .navdots')) {
+      const r = ch.getBoundingClientRect();
+      if (r.width && over(o.rect, [(r.left - sr.left) / k, (r.top - sr.top) / k, r.width / k, r.height / k], 2)) issues.push(`${o.name} touches slide chrome`);
+    }
     if (!o.overlapOk) for (const t of boxes) if (over(o.rect, t.box, 6)) issues.push(`${o.name} covers text "${t.name}"`);
   }
   for (let i = 0; i < objs.length; i++) for (let j = i + 1; j < objs.length; j++) {
@@ -121,7 +126,12 @@ async def run(args):
                 else:
                     await page.evaluate(f'deck.show({i})')
                     await page.wait_for_timeout(3200)
-                for issue in await page.evaluate(CHECK_JS, [args.min, args.inset]):
+                # idle animations keep moving, so sample several moments and keep every issue seen
+                found_now = []
+                for _ in range(4):
+                    found_now += await page.evaluate(CHECK_JS, [args.min, args.inset])
+                    await page.wait_for_timeout(170)
+                for issue in dict.fromkeys(found_now):
                     if (i, issue) in seen:
                         continue
                     seen.add((i, issue))
