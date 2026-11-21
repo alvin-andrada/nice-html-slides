@@ -34,10 +34,10 @@ Read `RULES.md` before generating. It is the full rule set; the summary below is
 ### 3. Generate the deck
 Start from frontend-slides' HTML architecture, then apply this skill's conventions:
 
-- In `<style>`: `/*@FONTS:Display Font,Body Font@*/` (fonts are inlined from fontsource, installed on demand) and `/*@NICE_CSS@*/`.
+- In `<style>`: `/*@FONTS:Display Font,Body Font@*/` (fonts are inlined from fontsource, installed on demand; static fonts take weights and italics in brackets, e.g. `Barlow[400 500 900]`, `Source Serif 4[italic]`; default 400 and 700) and `/*@NICE_CSS@*/`.
 - Before `</body>`: `<!--@STAGE3D@-->` when the deck uses props, mascots, charts or motion; then optionally `<script>window.NICE_MOTION = {...}</script>`; then `<!--@NICE_JS@-->` (navigation, auto builds, transitions, inline editing). Do not write a slide controller by hand.
 - Slide container: `<main class="deck-stage" id="deckStage">` with `<section class="slide">` children, as in frontend-slides.
-- Theme the accent layer from the style's tokens with CSS variables on `:root`: `--s3d-adelie`-style species/series colours are optional; the general ones are `--s3d-body`, `--s3d-outline`, `--s3d-outline-width`. Style 2D charts in the deck CSS (`.chart2d rect`, `.chart2d .v`, `.chart2d .tick`, ...).
+- Theme the accent layer from the style's tokens with CSS variables on `:root`: `--s3d-adelie`-style species/series colours are optional; the general ones are `--s3d-body`, `--s3d-outline`, `--s3d-outline-width`. Prop colours come from `--s3d-prop-main`, `--s3d-prop-dark`, `--s3d-prop-light`, `--s3d-prop-accent`; set them on `:root`, or per slide class when slide backgrounds alternate. Style 2D charts in the deck CSS (`.chart2d rect`, `.chart2d .v`, `.chart2d .tick`, ...).
 - Layout: content on a card lives inside that card, laid out with padding and grid/flex. Absolute positioning only for whole blocks.
 
 Data attributes:
@@ -52,7 +52,7 @@ Data attributes:
 | `data-overlap-ok` | `.prop` | a deliberate overlap the checks should allow |
 | class `inl` | `.p3d`/`.prop` | anchor that sits in the layout flow (inside flex rows) |
 
-The built-in mascot is a penguin (`adelie`, `chinstrap`, `gentoo`) and the props are `ruler`, `broom`, `pie`, `forest`, `trophy`, `magnifier`, `flag`, `iceberg` (`runtime/props.js`). For other topics, add a builder to `runtime/props.js` from primitives in the same style: centred on the origin, toon materials, `userData.h` set. Every new prop goes through the turntable check.
+The built-in mascot is a penguin (`adelie`, `chinstrap`, `gentoo`) and the props are `ruler`, `broom`, `pie`, `forest`, `trophy`, `magnifier`, `flag`, `iceberg`, `laptop`, `router`, `server`, `globe`, `packet` (`runtime/props.js`). For other topics, add a builder to `runtime/props.js` from primitives in the same style: toon materials from `mats(p)` so the palette applies, `userData.h` set. Props are centred and fitted to their anchor box automatically. Every new prop goes through the turntable check.
 
 ### 4. Build and check (every change)
 ```
@@ -75,5 +75,8 @@ python scripts/export.py path/to/dist/deck.html --pdf deck.pdf --pptx deck.pptx 
 ```
 PDF: one image per slide at final state. PPTX (hybrid): native text boxes, native charts and tables, decor and 3D as an image layer. Use `--charts image` to keep charts as pictures. After exporting, render the PPTX once and check it.
 
-## Example
-`examples/palmer-penguins/deck.html` is a complete deck in the Daisy Days style using mascots, props, all four chart types, auto builds and transitions.
+## Examples
+Syntax references only. Never copy an example's style, wording, mascot or props into a new deck; the style comes from frontend-slides and the props come from the new deck's content.
+- `examples/palmer-penguins/deck.html`: mascots, props, all four chart types.
+- `examples/web-request/deck.html`: props only, per-slide prop palettes on alternating backgrounds.
+- `examples/supply-chain-review/deck.html`: no 3D; charts, builds and transitions only.

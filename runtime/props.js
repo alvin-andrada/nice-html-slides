@@ -1,7 +1,7 @@
 // Low-poly props built from primitives. Each returns a Group centred on the origin with userData.h (height).
 import {
   Group, Mesh, BoxGeometry, CylinderGeometry, ConeGeometry, TorusGeometry, LatheGeometry,
-  IcosahedronGeometry, MeshBasicMaterial, Vector2, DoubleSide,
+  IcosahedronGeometry, SphereGeometry, MeshBasicMaterial, Vector2, DoubleSide,
 } from 'three';
 
 function add(g, geo, mat, pos = [0, 0, 0], rot = [0, 0, 0], scale = [1, 1, 1]) {
@@ -13,9 +13,61 @@ function add(g, geo, mat, pos = [0, 0, 0], rot = [0, 0, 0], scale = [1, 1, 1]) {
   return m;
 }
 
-export function makeProps(toon) {
+// pal comes from the deck's --s3d-prop-* variables so props take the style's colours
+export function makeProps(toon, pal = {}) {
   const ink = toon('#1d2b4f');
+  const base = Object.assign({ main: '#ffc53d', dark: '#2b3550', light: '#eef3f8', accent: '#12a4a4' }, pal);
+  // a slide can override the palette, so each prop gets its own materials
+  const mats = (p = {}) => Object.fromEntries(Object.entries({ ...base, ...p }).map(([k, c]) => [k, toon(c)]));
   return {
+    laptop(p) {
+      const { dark, light, main } = mats(p), g = new Group();
+      add(g, new BoxGeometry(2.2, 0.12, 1.4), dark, [0, -0.6, 0.25]);
+      add(g, new BoxGeometry(1.8, 0.02, 0.6), light, [0, -0.53, 0.05]);
+      const lid = new Group();
+      add(lid, new BoxGeometry(2.2, 1.45, 0.1), dark, [0, 0.72, 0]);
+      add(lid, new BoxGeometry(1.95, 1.2, 0.02), main, [0, 0.74, 0.06]);
+      lid.position.set(0, -0.6, -0.42);
+      lid.rotation.x = -0.18;
+      g.add(lid);
+      g.userData.h = 1.6;
+      return g;
+    },
+    router(p) {
+      const { dark, main } = mats(p), g = new Group();
+      add(g, new BoxGeometry(2.0, 0.5, 1.2), dark, [0, -0.45, 0]);
+      for (const x of [-0.7, 0, 0.7]) add(g, new CylinderGeometry(0.06, 0.07, 1.1, 8), dark, [x, 0.3, -0.4], [0, 0, x * -0.25]);
+      for (const x of [-0.6, -0.3, 0, 0.3]) add(g, new SphereGeometry(0.07, 10, 8), main, [x, -0.45, 0.61]);
+      g.userData.h = 1.8;
+      return g;
+    },
+    server(p) {
+      const { dark, light, main } = mats(p), g = new Group();
+      add(g, new BoxGeometry(1.3, 2.2, 1.1), dark);
+      for (let i = 0; i < 4; i++) {
+        const y = 0.75 - i * 0.5;
+        add(g, new BoxGeometry(1.0, 0.3, 0.04), light, [-0.05, y, 0.56]);
+        add(g, new SphereGeometry(0.06, 10, 8), main, [0.38, y, 0.6]);
+      }
+      g.userData.h = 2.2;
+      return g;
+    },
+    globe(p) {
+      const { main, light, accent } = mats(p), g = new Group();
+      add(g, new IcosahedronGeometry(1, 1), main);
+      add(g, new TorusGeometry(1.35, 0.05, 8, 48), light, [0, 0, 0], [1.25, 0.3, 0]);
+      add(g, new SphereGeometry(0.12, 10, 8), accent, [1.12, 0.62, 0.5]);
+      g.userData.h = 2.3;
+      return g;
+    },
+    packet(p) {
+      const { dark, light, accent } = mats(p), g = new Group();
+      add(g, new BoxGeometry(1.8, 1.15, 0.12), dark);
+      for (const sx of [-1, 1]) add(g, new BoxGeometry(1.06, 0.07, 0.04), light, [sx * 0.43, 0.27, 0.08], [0, 0, sx * 0.6]);
+      add(g, new BoxGeometry(0.34, 0.34, 0.04), accent, [0.55, -0.3, 0.08]);
+      g.userData.h = 1.2;
+      return g;
+    },
     ruler() {
       const g = new Group(), body = new Group();
       add(body, new BoxGeometry(2.8, 0.55, 0.1), toon('#ffd166'));

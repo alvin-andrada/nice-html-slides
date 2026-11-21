@@ -3,7 +3,7 @@
 usage: python build.py path/to/deck.html [out.html]
 
 Markers the source page can use:
-  /*@FONTS:Name,Name@*/  inline these fonts (resolved from @fontsource packages, installed on demand)
+  /*@FONTS:Name,Name[400 900 italic]@*/  inline these fonts (resolved from @fontsource packages, installed on demand)
   /*@NICE_CSS@*/          the shared layer CSS (3D canvas, anchors, builds, export modes)
   <!--@STAGE3D@-->        three.js + GSAP + stage3d runtime (only when the deck uses 3D, charts or motion)
   <!--@NICE_JS@-->        slide controller (navigation, auto builds, transitions, inline editing)
@@ -26,38 +26,46 @@ def npm(*args):
     subprocess.run([cmd, *args], cwd=ROOT, check=True)
 
 
-def font_file(name):
+def font_files(spec):
+    # spec is "Name" or "Name[400 900 italic]"; static fonts default to 400 and 700
+    m = re.fullmatch(r"\s*([^\[]+?)\s*(?:\[([^\]]*)\])?\s*", spec)
+    name, opts = m.group(1), (m.group(2) or "").split()
+    italic = "italic" in opts
+    weights = [w for w in opts if w.isdigit()] or ["400", "700"]
     slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
-    candidates = [
-        (f"@fontsource-variable/{slug}", f"{slug}-latin-wght-normal.woff2", "100 900"),
-        (f"@fontsource/{slug}", f"{slug}-latin-400-normal.woff2", "400"),
-    ]
-    for pkg, file, weight in candidates:
-        path = NM / pkg / "files" / file
-        if path.exists():
-            return path, weight
-    for pkg, file, weight in candidates:
+    styles = ["normal", "italic"] if italic else ["normal"]
+    # variable fonts cover every weight, so they win when fontsource has one
+    var = NM / f"@fontsource-variable/{slug}" / "files"
+    if not (var / f"{slug}-latin-wght-normal.woff2").exists():
         try:
-            npm("install", "--no-save", pkg)
+            npm("install", "--no-save", f"@fontsource-variable/{slug}")
         except subprocess.CalledProcessError:
-            continue
-        path = NM / pkg / "files" / file
-        if path.exists():
-            return path, weight
+            pass
+    if (var / f"{slug}-latin-wght-normal.woff2").exists():
+        return name, [(var / f"{slug}-latin-wght-{st}.woff2", "100 900", st) for st in styles]
+    static = NM / f"@fontsource/{slug}" / "files"
+    if not static.exists():
+        try:
+            npm("install", "--no-save", f"@fontsource/{slug}")
+        except subprocess.CalledProcessError:
+            pass
+    found = [(static / f"{slug}-latin-{w}-{st}.woff2", w, st) for w in weights for st in styles]
+    found = [f for f in found if f[0].exists()]
+    if found:
+        return name, found
     sys.exit(f"font not found on fontsource: {name}")
 
 
-def fonts_css(names):
+def fonts_css(specs):
     css = ""
-    for name in names:
-        path, weight = font_file(name)
-        b64 = base64.b64encode(path.read_bytes()).decode()
-        css += (f"@font-face{{font-family:'{name}';font-style:normal;font-weight:{weight};"
-                f"font-display:block;src:url(data:font/woff2;base64,{b64}) format('woff2');}}\n")
-        if not path.parent.parent.name.startswith("@fontsource-variable") and (path.parent / path.name.replace("-400-", "-700-")).exists():
-            bold = base64.b64encode((path.parent / path.name.replace("-400-", "-700-")).read_bytes()).decode()
-            css += (f"@font-face{{font-family:'{name}';font-style:normal;font-weight:700;"
-                    f"font-display:block;src:url(data:font/woff2;base64,{bold}) format('woff2');}}\n")
+    for spec in specs:
+        name, files = font_files(spec)
+        for path, weight, style in files:
+            if not path.exists():
+                continue
+            b64 = base64.b64encode(path.read_bytes()).decode()
+            css += (f"@font-face{{font-family:'{name}';font-style:{style};font-weight:{weight};"
+                    f"font-display:block;src:url(data:font/woff2;base64,{b64}) format('woff2');}}\n")
     return css
 
 

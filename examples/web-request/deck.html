@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Click: How a Web Request Travels</title>
+<style>
+/*@FONTS:Barlow[400 500 700 900],IBM Plex Mono[500]@*/
+
+/* === STUDIO TOKENS === */
+:root {
+  --near-black: #1C1C1C;
+  --acid: #F5D200;
+  --acid-2: rgba(245, 210, 0, 0.58);
+  --acid-3: rgba(245, 210, 0, 0.32);
+  --ink-2: rgba(28, 28, 28, 0.62);
+  --border-dark: #2E2E2C;
+  --border-light: rgba(28, 28, 28, 0.18);
+  --font-display: 'Barlow', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --text-dark: var(--near-black);
+  --accent: var(--acid);
+  --stage-bg: #0d0d0d;
+  --slide-bg: var(--near-black);
+  /* the 3D layer reads these */
+  --s3d-outline: #1C1C1C;
+  --s3d-outline-width: 0.005;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* === VIEWPORT BASE (frontend-slides) === */
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--stage-bg, #000); }
+.deck-viewport { position: fixed; inset: 0; overflow: hidden; background: var(--stage-bg, #000); }
+.deck-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; background: var(--slide-bg, #fff); }
+.slide { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; display: block; visibility: hidden; opacity: 0; pointer-events: none; background: var(--slide-bg, #fff); }
+.slide.active, .slide.visible { visibility: visible; opacity: 1; pointer-events: auto; z-index: 1; }
+img, video, canvas, svg { max-width: 100%; max-height: 100%; }
+@media print {
+  html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+  .deck-viewport { position: static; overflow: visible; background: #fff; }
+  .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
+  .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; width: 1920px; height: 1080px; break-after: page; page-break-after: always; }
+  .slide:last-child { break-after: auto; page-break-after: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+}
+
+/* === SURFACES: binary, near-black or acid yellow === */
+.slide { font-family: var(--font-display); transition: opacity .4s ease, visibility .4s; }
+.s-dark { background: var(--near-black); color: var(--acid); --rule: var(--border-dark); --muted: var(--acid-2);
+  --s3d-prop-main: #F5D200; --s3d-prop-dark: #615613; --s3d-prop-light: #F5D200; --s3d-prop-accent: #1C1C1C; }
+.s-yellow { background: var(--acid); color: var(--near-black); --rule: var(--border-light); --muted: var(--ink-2);
+  --s3d-prop-main: #1C1C1C; --s3d-prop-dark: #1C1C1C; --s3d-prop-light: #F5D200; --s3d-prop-accent: #F5D200; }
+
+/* === TYPE: Barlow 900 uppercase as graphic mass === */
+.abs { position: absolute; z-index: 2; }
+.display { font: 900 260px/0.88 var(--font-display); letter-spacing: -0.02em; text-transform: uppercase; }
+.h1 { font: 900 176px/0.92 var(--font-display); letter-spacing: -0.02em; text-transform: uppercase; }
+.h2 { font: 900 128px/0.95 var(--font-display); letter-spacing: -0.01em; text-transform: uppercase; }
+.h3 { font: 700 52px/1.05 var(--font-display); text-transform: uppercase; }
+.lead { font: 500 48px/1.35 var(--font-display); }
+.muted { color: var(--muted); }
+.mono { font: 500 30px/1.3 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; }
+.stat { font: 900 300px/0.85 var(--font-display); letter-spacing: -0.03em; text-transform: uppercase; }
+
+/* === STRUCTURE: hairlines and heavy anchor rules, no radius, no shadow === */
+.meta { left: 96px; right: 96px; bottom: 64px; display: grid; grid-template-columns: 1fr 1fr 1fr; padding-top: 26px; border-top: 1px solid rgba(245, 210, 0, 0.25); }
+.meta > :nth-child(2) { text-align: center; }
+.meta > :nth-child(3) { text-align: right; }
+.anchor { border-top: 2px solid currentColor; padding-top: 28px; }
+.counter { right: 96px; bottom: 56px; font: 500 30px/1 var(--font-mono); letter-spacing: 0.06em; z-index: 5; color: var(--acid-2); }
+.counter.on-yellow { color: var(--ink-2); }
+
+.route { left: 96px; right: 96px; top: 390px; height: 540px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; }
+.hop { display: flex; flex-direction: column; justify-content: flex-end; gap: 30px; border-top: 2px solid var(--acid); padding-top: 34px; }
+.hop .slot { flex: 1; position: relative; }
+.hop .slot .prop { left: 0; top: 0; width: 100%; height: 100%; }
+.hop .n { font: 500 30px/1 var(--font-mono); letter-spacing: 0.06em; color: var(--acid-2); }
+
+.timing { left: 96px; right: 96px; top: 360px; height: 560px; display: grid; grid-template-columns: 330px 1fr; gap: 40px; }
+.timing .names { display: grid; grid-template-rows: repeat(5, 1fr); align-items: center; font: 700 46px/1 var(--font-display); text-transform: uppercase; }
+.timing .names .hi { color: var(--acid); }
+.timing .names div { color: var(--acid-2); }
+
+/* === 2D CHARTS IN THIS STYLE: flat bars, no radius === */
+.chart2d rect { rx: 0; ry: 0; }
+.chart2d .v { font: 900 46px var(--font-display); fill: var(--acid); }
+
+/*@NICE_CSS@*/
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+  <!-- 1 Cover -->
+  <section class="slide s-dark">
+    <h1 class="abs display" style="left:96px;top:120px">One<br>Click</h1>
+    <p class="abs lead muted reveal" style="left:96px;top:620px;width:860px;--i:2">What happens between pressing Enter and seeing the page.</p>
+    <div class="prop" data-prop="laptop" data-step="1" style="left:1080px;top:150px;width:720px;height:640px"></div>
+    <div class="abs meta mono reveal" style="--i:3"><span>Web basics</span><span>How a request travels</span><span>2026</span></div>
+  </section>
+
+  <!-- 2 DNS -->
+  <section class="slide s-yellow">
+    <h2 class="abs h2" style="left:96px;top:96px">Find the<br>address</h2>
+    <div class="abs anchor" data-step="1" style="left:96px;top:520px;width:1020px">
+      <div class="h3">example.com</div>
+      <div class="h3" style="font-size:96px;font-weight:900;margin-top:18px">93.184.215.14</div>
+    </div>
+    <p class="abs lead muted" data-step="2" style="left:96px;top:820px;width:1020px">DNS turns the name you typed into a number the network can route.</p>
+    <div class="prop" data-prop="globe" data-step="1" style="left:1270px;top:240px;width:540px;height:560px"></div>
+    <div class="abs counter on-yellow">02 / 06</div>
+  </section>
+
+  <!-- 3 Route -->
+  <section class="slide s-dark">
+    <h2 class="abs h2" style="left:96px;top:96px">The route</h2>
+    <div class="abs route">
+      <div class="hop" data-step="1"><div class="slot"><div class="prop" data-prop="laptop"></div></div><span class="n">01</span><div class="h3">Your laptop</div></div>
+      <div class="hop" data-step="2"><div class="slot"><div class="prop" data-prop="router"></div></div><span class="n">02</span><div class="h3">Home router</div></div>
+      <div class="hop" data-step="3"><div class="slot"><div class="prop" data-prop="globe"></div></div><span class="n">03</span><div class="h3">The internet</div></div>
+      <div class="hop" data-step="4"><div class="slot"><div class="prop" data-prop="server"></div></div><span class="n">04</span><div class="h3">The server</div></div>
+    </div>
+    <div class="abs counter">03 / 06</div>
+  </section>
+
+  <!-- 4 Timing -->
+  <section class="slide s-dark">
+    <h2 class="abs h2" style="left:96px;top:96px">Where the<br>time goes</h2>
+    <div class="abs timing reveal" style="top:400px;--i:1">
+      <div class="names"><div>DNS</div><div>Connect</div><div>TLS</div><div class="hi">Server</div><div>Download</div></div>
+      <div class="chart grow" data-chart="hbars" data-values="20,30,45,120,60" data-max="130" data-colors="#615613,#615613,#615613,#F5D200,#615613" data-labels="values" data-format="{v} ms"></div>
+    </div>
+    <div class="abs counter">04 / 06</div>
+  </section>
+
+  <!-- 5 Response -->
+  <section class="slide s-yellow">
+    <h2 class="abs h2" style="left:96px;top:96px">The answer</h2>
+    <div class="abs stat" data-step="1" style="left:96px;top:400px">200 OK</div>
+    <p class="abs lead muted" data-step="2" style="left:96px;top:720px;width:980px">A status code, a few headers, then the page itself.</p>
+    <div class="prop" data-prop="packet" data-step="1" style="left:1260px;top:330px;width:540px;height:420px"></div>
+    <div class="abs counter on-yellow">05 / 06</div>
+  </section>
+
+  <!-- 6 End -->
+  <section class="slide s-dark">
+    <h2 class="abs h1" style="left:96px;top:300px">Four hops.<br>275 ms.</h2>
+    <p class="abs lead muted reveal" style="left:96px;top:720px;width:1100px;--i:3">Every page load runs this trip, usually more than once.</p>
+    <div class="abs counter">06 / 06</div>
+  </section>
+
+</main>
+</div>
+
+<!--@STAGE3D@-->
+<script>window.NICE_MOTION = { ease: 'power4.out', dur: 0.5, stagger: 0.06 };</script>
+<!--@NICE_JS@-->
+</body>
+</html>

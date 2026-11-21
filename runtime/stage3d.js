@@ -357,6 +357,11 @@ export function init(stageEl) {
   }
 
   const api = { freeze: false, layers: { charts: true }, points, SPECIES };
+  // --s3d-prop-* can be set on the deck or per slide; each anchor reads what it inherits
+  const palOf = el => {
+    const cs = getComputedStyle(el);
+    return Object.fromEntries(['main', 'dark', 'light', 'accent'].map(k => [k, cs.getPropertyValue(`--s3d-prop-${k}`).trim()]).filter(([, c]) => c));
+  };
   const props = makeProps(toon), propInst = new Map();
   function placeProps(active, d) {
     for (const [el, p] of propInst) {
@@ -367,8 +372,11 @@ export function init(stageEl) {
     for (const el of active) {
       let p = propInst.get(el);
       if (!p) {
-        const obj = props[el.dataset.prop]();
-        obj.userData.size = new Box3().setFromObject(obj).getSize(new Vector3());
+        // centre the model on its bounding box so fitting to the anchor keeps it inside
+        const model = props[el.dataset.prop](palOf(el)), box = new Box3().setFromObject(model), obj = new Group();
+        model.position.sub(box.getCenter(new Vector3()));
+        obj.add(model);
+        obj.userData.size = box.getSize(new Vector3());
         obj.visible = false;
         scene.add(obj);
         p = { obj, anim: el.dataset.anim || 'float', phase: Math.random() * 6 };
@@ -377,9 +385,9 @@ export function init(stageEl) {
       // props default to a layer behind mascots so they never cut through them
       const r = rectOf(el), cx = (r.l + r.r) / 2, cy = (r.t + r.b) / 2, z = el.dataset.z != null ? +el.dataset.z : -2.5;
       p.base = px2w(cx, cy, z);
-      // fit inside the anchor box on both axes
+      // fit inside the anchor box on both axes, with room for perspective and the idle sway
       const sz = p.obj.userData.size;
-      p.s = Math.min((px2w(cx, r.t, z).y - px2w(cx, r.b, z).y) / sz.y, (px2w(r.r, cy, z).x - px2w(r.l, cy, z).x) / sz.x);
+      p.s = 0.86 * Math.min((px2w(cx, r.t, z).y - px2w(cx, r.b, z).y) / sz.y, (px2w(r.r, cy, z).x - px2w(r.l, cy, z).x) / sz.x);
       if (p.obj.visible) continue;
       p.obj.visible = true;
       p.obj.position.copy(p.base);

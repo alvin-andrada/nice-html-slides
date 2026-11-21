@@ -4,7 +4,7 @@ Lively, speaker-led HTML presentations: one self-contained HTML file per deck, w
 
 Built as an agent skill on top of [frontend-slides](https://github.com/zarazhangrui/frontend-slides), which provides the design system (presets, bold templates, the fixed 16:9 stage). This layer adds the accents, motion, checks and exports.
 
-**Live demo:** https://alvin-andrada.github.io/nice-html-slides/ (use the arrow keys or swipe).
+**Live demos:** https://alvin-andrada.github.io/nice-html-slides/ shows three decks in three styles: playful with mascots, bold with props only, and formal with no 3D.
 
 ## Features
 
@@ -45,10 +45,11 @@ SKILL.md          agent instructions
 RULES.md          full rule set (design, layout, motion, checks)
 build.py          source deck -> single HTML
 runtime/          stage3d (3D layer), charts2d, props, controller, layer CSS
-scripts/          qa, turntable, sheet (contact sheets), export (PDF/PPTX)
-qa/props.html     turntable page for props
-examples/         Palmer Penguins example deck
-docs/             built demo for GitHub Pages
+scripts/          qa, turntable, sheet (contact sheets), export (PDF/PPTX), site (rebuilds docs/)
+qa/               turntable pages for props and mascots
+examples/         example decks (penguins, web request, supply chain review)
+site/             demo gallery page source
+docs/             built gallery and demos for GitHub Pages
 ```
 
 ## Credits

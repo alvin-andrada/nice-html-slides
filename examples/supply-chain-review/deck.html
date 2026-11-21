@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supply Chain Review: Q3 2026</title>
+<style>
+/*@FONTS:Source Serif 4[italic],DM Sans,IBM Plex Mono[500]@*/
+
+/* === SIGNAL TOKENS === */
+:root {
+  --navy: #1C2644;
+  --cream: #F0ECE3;
+  --text-warm: #E2DCD0;
+  --muted-dark: #8A96A8;
+  --ink: #1A2030;
+  --muted-light: #5A6270;
+  --gold: #C8A870;
+  --border-dark: #2E3D5C;
+  --border-light: #CAC4B4;
+  --font-serif: 'Source Serif 4', Georgia, serif;
+  --font-sans: 'DM Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-display: var(--font-serif);
+  --text-dark: var(--ink);
+  --accent: var(--gold);
+  --stage-bg: #111829;
+  --slide-bg: var(--navy);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* === VIEWPORT BASE (frontend-slides) === */
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--stage-bg, #000); }
+.deck-viewport { position: fixed; inset: 0; overflow: hidden; background: var(--stage-bg, #000); }
+.deck-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; background: var(--slide-bg, #fff); }
+.slide { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; display: block; visibility: hidden; opacity: 0; pointer-events: none; background: var(--slide-bg, #fff); }
+.slide.active, .slide.visible { visibility: visible; opacity: 1; pointer-events: auto; z-index: 1; }
+img, video, canvas, svg { max-width: 100%; max-height: 100%; }
+@media print {
+  html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+  .deck-viewport { position: static; overflow: visible; background: #fff; }
+  .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
+  .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; width: 1920px; height: 1080px; break-after: page; page-break-after: always; }
+  .slide:last-child { break-after: auto; page-break-after: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+}
+
+/* === SURFACES: navy with the 80px grid, cream paper === */
+.slide { font-family: var(--font-sans); transition: opacity .6s ease, visibility .6s; }
+.s-navy { background: var(--navy); color: var(--text-warm); --rule: var(--border-dark); --muted: var(--muted-dark); }
+.s-navy::before { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 80px 80px; }
+.s-cream { background: var(--cream); color: var(--ink); --rule: var(--border-light); --muted: var(--muted-light); }
+
+/* === TYPE: serif voice, sans substance, mono metadata === */
+.abs { position: absolute; z-index: 2; }
+.display { font: 700 172px/0.98 var(--font-serif); letter-spacing: -0.02em; }
+.h1 { font: 600 132px/1.06 var(--font-serif); letter-spacing: -0.01em; }
+.h2 { font: 600 104px/1.1 var(--font-serif); letter-spacing: -0.01em; }
+h1 em, h2 em, .lead em { font-family: var(--font-serif); font-style: italic; color: var(--gold); }
+/* antique gold is too light on cream for projection, so cream slides use its darker shade */
+.s-cream { --gold-text: #8A6A2E; }
+.s-cream h1 em, .s-cream h2 em, .s-cream .lead em { color: var(--gold-text); }
+.lead { font: 400 48px/1.45 var(--font-sans); color: var(--muted); }
+.mono { font: 500 30px/1.3 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.rule { width: 72px; height: 2px; background: var(--gold); }
+.counter { right: 144px; bottom: 60px; z-index: 5; }
+
+/* === COMPONENTS: hairlines, gold numerals, em-dash bullets === */
+.stats { left: 144px; right: 144px; top: 470px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 72px; }
+.stat { border-top: 1px solid var(--rule); padding-top: 40px; }
+.stat b { display: block; font: 600 150px/1 var(--font-serif); letter-spacing: -0.02em; color: var(--gold-text, var(--gold)); }
+.stat span { display: block; margin-top: 26px; font: 400 46px/1.3 var(--font-sans); }
+.list { left: 144px; top: 440px; width: 1500px; }
+.list li { list-style: none; display: grid; grid-template-columns: 90px 1fr; font: 400 52px/1.3 var(--font-sans); padding: 34px 0; border-top: 1px solid var(--rule); }
+.list li::before { content: '\2014'; font-family: var(--font-mono); color: var(--gold); }
+.bars { left: 144px; top: 400px; width: 1100px; height: 520px; display: grid; grid-template-rows: 1fr auto; gap: 24px; }
+.bars .row { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; font: 500 34px/1 var(--font-mono); letter-spacing: 0.06em; color: var(--muted); }
+.lanes { left: 144px; top: 420px; width: 1100px; height: 440px; display: grid; grid-template-columns: 200px 1fr; gap: 40px; }
+.lanes .names { display: grid; grid-template-rows: repeat(4, 1fr); align-items: center; font: 400 46px/1 var(--font-sans); }
+.aside { left: 1360px; top: 470px; width: 420px; border-top: 1px solid var(--rule); padding-top: 40px; }
+
+/* === 2D CHARTS IN THIS STYLE: flat, square, gold for the figure that matters === */
+.chart2d rect { rx: 0; ry: 0; }
+.chart2d .base { stroke: var(--rule); stroke-width: 1; }
+.chart2d .v { font: 600 46px var(--font-serif); fill: var(--ink); }
+.s-navy .chart2d .v.in { fill: var(--navy); }
+
+/*@NICE_CSS@*/
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+  <!-- 1 Cover -->
+  <section class="slide s-navy">
+    <div class="abs rule reveal" style="left:144px;top:300px"></div>
+    <h1 class="abs display" style="left:144px;top:350px;width:1500px">Supply chain, <em>steadied</em></h1>
+    <p class="abs lead reveal" style="left:144px;top:720px;--i:2">Third-quarter operations review, 2026</p>
+    <div class="abs mono reveal" style="left:144px;bottom:80px;--i:3">Meridian Foods</div>
+  </section>
+
+  <!-- 2 Three numbers -->
+  <section class="slide s-cream">
+    <div class="abs rule" style="left:144px;top:150px"></div>
+    <h2 class="abs h2" style="left:144px;top:190px">The quarter in <em>three numbers</em></h2>
+    <div class="abs stats">
+      <div class="stat" data-step="1"><b>96.4%</b><span>orders delivered on time</span></div>
+      <div class="stat" data-step="2"><b>41</b><span>days of inventory on hand</span></div>
+      <div class="stat" data-step="3"><b>&minus;12%</b><span>freight cost per case</span></div>
+    </div>
+    <div class="abs mono counter">02 / 06</div>
+  </section>
+
+  <!-- 3 On-time delivery -->
+  <section class="slide s-navy">
+    <div class="abs rule" style="left:144px;top:150px"></div>
+    <h2 class="abs h2" style="left:144px;top:190px">On-time delivery, <em>recovering</em></h2>
+    <div class="abs bars reveal" style="--i:1">
+      <div class="chart grow" data-chart="bars" data-values="89.1,91.0,93.8,96.4" data-max="100" data-colors="#8A96A8,#8A96A8,#8A96A8,#C8A870" data-labels="values" data-format="{v}%"></div>
+      <div class="row"><div>Q4 2025</div><div>Q1 2026</div><div>Q2 2026</div><div>Q3 2026</div></div>
+    </div>
+    <div class="abs aside" data-step="1"><p class="lead">Up <em>7.3 points</em> in a year, after the carrier change in January.</p></div>
+    <div class="abs mono counter">03 / 06</div>
+  </section>
+
+  <!-- 4 Freight lanes -->
+  <section class="slide s-cream">
+    <div class="abs rule" style="left:144px;top:150px"></div>
+    <h2 class="abs h2" style="left:144px;top:190px">Freight spend by <em>lane</em></h2>
+    <div class="abs lanes reveal" style="--i:1">
+      <div class="names"><div>Sea</div><div>Road</div><div>Air</div><div>Rail</div></div>
+      <div class="chart grow" data-chart="hbars" data-values="38,27,21,14" data-max="45" data-colors="#5A6270,#5A6270,#8A6A2E,#5A6270" data-labels="values" data-format="{v}%"></div>
+    </div>
+    <div class="abs aside" data-step="1"><p class="lead">Air is <em>a fifth of spend</em> for 3% of cases shipped.</p></div>
+    <div class="abs mono counter">04 / 06</div>
+  </section>
+
+  <!-- 5 Risks -->
+  <section class="slide s-navy">
+    <div class="abs rule" style="left:144px;top:150px"></div>
+    <h2 class="abs h2" style="left:144px;top:190px">Risks for <em>next quarter</em></h2>
+    <ul class="abs list">
+      <li data-step="1">Port congestion during the peak season</li>
+      <li data-step="2">Cold-storage capacity short by 8%</li>
+      <li data-step="3">Two suppliers on single-source contracts</li>
+    </ul>
+    <div class="abs mono counter">05 / 06</div>
+  </section>
+
+  <!-- 6 Close -->
+  <section class="slide s-cream">
+    <div class="abs rule reveal" style="left:144px;top:360px"></div>
+    <h2 class="abs h1" style="left:144px;top:410px;width:1500px">Hold the gains, <em>then widen them</em></h2>
+  </section>
+
+</main>
+</div>
+
+<!--@STAGE3D@-->
+<script>window.NICE_MOTION = { ease: 'expo.out', dur: 0.8, stagger: 0.1, group: 0.6 };</script>
+<!--@NICE_JS@-->
+</body>
+</html>
